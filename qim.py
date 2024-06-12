@@ -73,8 +73,8 @@ def extract_fingerprint(embedded_image, qim, fingerprint_length):
 
 if __name__ == "__main__":
     # 直接赋值读入文件和输出文件夹的路径
-    original_images_folder = 'path/to/original/images'
-    fingerprinted_versions_folder = 'path/to/fingerprinted/versions'
+    original_images_folder = './data/original_images'
+    fingerprinted_versions_folder = './data/fingerprinted_versions'
 
     # 读入指定图像
     image_path = os.path.join(original_images_folder, "color_image.jpg")
