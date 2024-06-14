@@ -1,14 +1,17 @@
 import argparse
 import configparser
 import cv2
+import os
 from db_operations import DatabaseManager, process_image_for_distribution, trace_colluder
 from colluded_attack import (
+    attack_per_channel,
     logical_and_attack,
     logical_or_attack,
     random_selection_attack,
     majority_strategy_attack,
     minority_strategy_attack
 )
+
 
 def main():
     parser = argparse.ArgumentParser(description="Process images for distribution, perform a collusion attack, or trace a colluder.")
@@ -49,36 +52,73 @@ def main():
             print("Failed to process and distribute image.")
 
     elif args.option == 'cldatk':
+
         if len(args.parameters) < 3:
             print("Invalid number of arguments for collusion attack.")
+
             return
+
         attack_type = args.parameters[-1]
+
         image_paths = args.parameters[:-1]
-        images = [cv2.imread(image_path, cv2.IMREAD_GRAYSCALE) for image_path in image_paths]
+
+        images = [cv2.imread(image_path) for image_path in image_paths]
+
+        # 检查是否所有读入的图像都是有效的，否则提醒用户
+
+        if any(image is None for image in images):
+            print("某些图像路径无效或图像文件不能读取。")
+
+            return
 
         if not all(image.shape == images[0].shape for image in images):
-            raise ValueError("所有图像必须具有相同的尺寸")
+            print("所有图像必须具有相同的尺寸以进行合谋攻击。")
+
+            return
 
         attack_result = None
+
         if attack_type in ["and", "or", "random", "majority", "minority"]:
+
+            if not os.path.exists(colluded_images_folder):
+                os.makedirs(colluded_images_folder)
+
+            work_id = os.path.basename(image_paths[0]).split('_')[0]
+
             if attack_type == "and":
-                attack_result = logical_and_attack(images)
+
+                attack_result = attack_per_channel(images, logical_and_attack)
+
             elif attack_type == "or":
-                attack_result = logical_or_attack(images)
+
+                attack_result = attack_per_channel(images, logical_or_attack)
+
             elif attack_type == "random":
-                attack_result = random_selection_attack(images)
+
+                attack_result = attack_per_channel(images, random_selection_attack)
+
             elif attack_type == "majority":
-                attack_result = majority_strategy_attack(images)
+
+                attack_result = attack_per_channel(images, majority_strategy_attack)
+
             elif attack_type == "minority":
-                attack_result = minority_strategy_attack(images)
+
+                attack_result = attack_per_channel(images, minority_strategy_attack)
 
             if attack_result is not None:
-                result_filename = f"{attack_type}_attack_result.png"
+
+                result_filename = os.path.join(colluded_images_folder, f"{work_id}_{attack_type}_attack_result.jpg")
+
                 cv2.imwrite(result_filename, attack_result)
+
                 print(f"{attack_type.capitalize()} attack executed and result saved as {result_filename}")
+
             else:
+
                 print("Failed to execute the attack.")
+
         else:
+
             print("Invalid attack type specified.")
 
     elif args.option == 'trace':
@@ -91,6 +131,7 @@ def main():
             print("Colluder traced successfully.")
         else:
             print("Failed to trace the colluder.")
+
 
 if __name__ == "__main__":
     main()

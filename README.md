@@ -41,6 +41,28 @@ python main.py --option trace data/colluded_images/2CBD8C1F2_logical_and.jpg
 
 这个命令会启动程序，程序将根据提供的图像路径尝试使用 `trace_colluder` 函数来检测和比较数据库中的数字指纹。如果找到匹配的数字指纹，它将输出匹配的用户 ID 和作品 ID，并确认成功跟踪。如果没有找到匹配，它将通知用户跟踪失败。
 
+## 测试样例
+### 生成特定作品的若干个发行版
+```bash
+python main.py --option distri 0157435433 3B85FFDE6
+```
+```bash
+python main.py --option distri 0106080058 3B85FFDE6
+```
+```bash
+python main.py --option distri 0544667600 3B85FFDE6
+```
+```bash
+python main.py --option distri 0644998327 3B85FFDE6
+```
+```bash
+python main.py --option distri 0713476406 3B85FFDE6
+```
+### 从发行版中选择一部分进行合谋攻击
+```bash
+python main.py --option cldatk ./data/fingerprinted_versions/3B85FFDE6_0106080058.jpg ./data/fingerprinted_versions/3B85FFDE6_0157435433.jpg ./data/fingerprinted_versions/3B85FFDE6_0544667600.jpg majority
+```
+
 ## 不足
 ### 图像格式适配存在问题
 本项目在编写时主要考虑了`.jpg`这一文件格式，而没有考虑对其他文件格式进行适配。
