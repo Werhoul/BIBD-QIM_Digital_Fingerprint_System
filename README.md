@@ -63,6 +63,11 @@ python main.py --option distri 0713476406 3B85FFDE6
 python main.py --option cldatk ./data/fingerprinted_versions/3B85FFDE6_0106080058.jpg ./data/fingerprinted_versions/3B85FFDE6_0157435433.jpg ./data/fingerprinted_versions/3B85FFDE6_0544667600.jpg majority
 ```
 
+### 尝试进行追踪
+```bash
+python main.py --option trace ./data/colluded_images/3B85FFDE6_majority_attack_result.jpg
+```
+
 ## 不足
 ### 图像格式适配存在问题
 本项目在编写时主要考虑了`.jpg`这一文件格式，而没有考虑对其他文件格式进行适配。
