@@ -26,6 +26,21 @@ python main.py --option cldatk image1.png image2.png image3.png majority
 ```  
 这条命令将使用提供的三个图像文件（`image1.png`, `image2.png`, `image3.png`）进行 "majority" 攻击类型的合谋攻击，并将结果保存为 `majority_attack_result.png`。  
 
+### 3. 追踪叛逆者 (`trace` 选项)
+当然可以！为了使用 `trace` 选项在命令行中跟踪合谋攻击生成的图像中的数字指纹，你需要按照以下格式提供命令：
+
+```bash
+python main.py --option trace [colluded_image_path]
+```
+
+其中 `[colluded_image_path]` 需要替换为实际的文件路径，这个文件应该是由合谋攻击生成的图像。例如，如果你有一个名为 `2CBD8C1F2_logical_and.jpg` 的合谋攻击图像存放在 `data/colluded_images` 文件夹中，那么命令将是：
+
+```bash
+python main.py --option trace data/colluded_images/2CBD8C1F2_logical_and.jpg
+```
+
+这个命令会启动程序，程序将根据提供的图像路径尝试使用 `trace_colluder` 函数来检测和比较数据库中的数字指纹。如果找到匹配的数字指纹，它将输出匹配的用户 ID 和作品 ID，并确认成功跟踪。如果没有找到匹配，它将通知用户跟踪失败。
+
 ## 不足
 ### 图像格式适配存在问题
 本项目在编写时主要考虑了`.jpg`这一文件格式，而没有考虑对其他文件格式进行适配。

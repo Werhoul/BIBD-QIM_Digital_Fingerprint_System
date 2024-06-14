@@ -3,19 +3,14 @@ import cv2
 import configparser
 import mysql.connector
 from datetime import datetime
-from qim import QIM
+import numpy as np
+from qim import QIM, extract_fingerprint, calculate_image_capacity
 
 # 导入QIM类和相关图像处理函数
 from qim import embed_fingerprint, check_fingerprint_length
 
 # 导入生成数字指纹的函数
 from fingerprint import generate_digital_fingerprint
-
-# 读取配置文件
-config = configparser.ConfigParser()
-config.read('config.ini')
-original_images_folder = config['folders']['original_images_folder']
-fingerprinted_versions_folder = config['folders']['fingerprinted_versions_folder']
 
 
 class DatabaseManager:
@@ -69,6 +64,11 @@ class DatabaseManager:
             print(f"Database query error: {err}")
             return []
 
+    def fetch_all_fingerprints(self):
+        sql = "SELECT user_id, work_id, digital_fingerprint FROM digital_fingerprints"
+        self.cursor.execute(sql)
+        return self.cursor.fetchall()
+
     def close(self):
         if self.db_connection.is_connected():
             self.cursor.close()
@@ -76,13 +76,11 @@ class DatabaseManager:
             print("MySQL connection is closed")
 
 
-def process_image_for_distribution(user_id, work_id, qim_delta):
+def process_image_for_distribution(db_manager,user_id, work_id, qim_delta, original_images_folder, fingerprinted_versions_folder):
     # 确保你在主函数中初始化了 QIM 实例
     qim = QIM(delta = qim_delta)
 
     try:
-        db_manager = DatabaseManager('localhost', 'root', 'lamcaptain11', 'DigitalFingerprintDB')
-
         # 从数据库获取work_name
         work_name = db_manager.get_work_name(work_id)
         if work_name is None:
@@ -117,3 +115,38 @@ def process_image_for_distribution(user_id, work_id, qim_delta):
         print(f"Error processing image for user {user_id} and work {work_id}: {e}")
         db_manager.close()
         return False
+
+
+def trace_colluder(db_manager, colluded_images_path, qim_delta):
+    # 提取文件名中的work_id
+    filename = os.path.basename(colluded_images_path)
+    parts = filename.split('_')
+    if len(parts) < 2:  # 确保文件名至少包含一个下划线
+        raise ValueError("Invalid filename format. Expected 'work_id_attackmethod.ext'.")
+    work_id = parts[0]
+
+    # 读取合谋攻击生成的图像
+    image = cv2.imread(colluded_images_path, cv2.IMREAD_UNCHANGED)
+    if image is None:
+        raise FileNotFoundError(f"No image found at {colluded_images_path}")
+
+    # 提取数字指纹
+    qim = QIM(delta=qim_delta)
+    fingerprint_length = calculate_image_capacity(image)
+    extracted_fingerprint = extract_fingerprint(image, qim, fingerprint_length)
+
+    # 获取数据库中所有的数字指纹记录
+    all_fingerprints = db_manager.fetch_all_fingerprints()
+
+    # 比对提取的指纹和数据库中的指纹
+    for record in all_fingerprints:
+        user_id, stored_work_id, stored_fingerprint = record
+        if work_id == stored_work_id:
+            stored_fingerprint = np.frombuffer(stored_fingerprint, dtype=np.uint8)
+            if np.array_equal(extracted_fingerprint, stored_fingerprint):
+                print(f"Match found: User ID = {user_id}, Work ID = {stored_work_id}")
+                print("Collusion detection completed successfully.")
+                return True
+
+    print("No match found. Unable to trace the colluder. Failed to detect collusion.")
+    return False
