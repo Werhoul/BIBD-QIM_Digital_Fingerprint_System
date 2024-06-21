@@ -27,7 +27,7 @@ python main.py --option cldatk image1.png image2.png image3.png majority
 这条命令将使用提供的三个图像文件（`image1.png`, `image2.png`, `image3.png`）进行 "majority" 攻击类型的合谋攻击，并将结果保存为 `majority_attack_result.png`。  
 
 ### 3. 追踪叛逆者 (`trace` 选项)
-当然可以！为了使用 `trace` 选项在命令行中跟踪合谋攻击生成的图像中的数字指纹，你需要按照以下格式提供命令：
+使用 `trace` 选项在命令行中跟踪合谋攻击生成的图像中的数字指纹，你需要按照以下格式提供命令：
 
 ```bash
 python main.py --option trace [colluded_image_path]
@@ -66,6 +66,15 @@ python main.py --option cldatk ./data/fingerprinted_versions/3B85FFDE6_010608005
 ### 尝试进行追踪
 ```bash
 python main.py --option trace ./data/colluded_images/3B85FFDE6_majority_attack_result.jpg
+```
+
+## 使用`code2flow`和`Graphviz`工具制作函数调用图
+```bash
+ code2flow your_project_path -o output.dot
+```
+然后使用 Graphviz 生成图像：
+```bash
+dot -Tpng output.dot -o output.png
 ```
 
 ## 不足
